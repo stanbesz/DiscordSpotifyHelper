@@ -1,0 +1,3 @@
+# ignores all credential files
+config.json
+credential.json
