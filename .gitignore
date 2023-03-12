@@ -1,3 +1,9 @@
 # ignores all credential files
 config.json
 credential.json
+
+#ignore all .env
+.env
+
+#ignore directories
+node_modules

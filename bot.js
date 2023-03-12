@@ -1,39 +1,41 @@
-const { google } = require('googleapis');
-const Discord = require('discord.js');
+const fs = require('node:fs');
+const path = require('node:path');
+const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
+const { token } = require('./config.json');
 
-const auth = new google.auth.GoogleAuth({
-  keyFile: 'credentials.json',
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
+client.commands = new Collection();
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+for (const file of commandFiles) {
+	const filePath = path.join(commandsPath, file);
+	const command = require(filePath);
+	client.commands.set(command.data.name, command);
+}
+
+client.once(Events.ClientReady, () => {
+	console.log('Ready!');
 });
 
-const client = new Discord.Client({
-  intents: [
-    Discord.GatewayIntentBits.Guilds,
-		Discord.GatewayIntentBits.GuildMessages,
-		Discord.GatewayIntentBits.MessageContent,
-		Discord.GatewayIntentBits.GuildMembers,
-  ]
-});
-const sheetId = '1TVmDGCj3IFqz_AMzp_fs93ga5ACfSP6Pe82ypR9CFZE';
-const sheetName = 'Spotify_family_plan';
+client.on(Events.InteractionCreate, async interaction => {
+	if (!interaction.isChatInputCommand()) return;
 
-client.once('ready', () => {
-  console.log('Bot is ready!');
-});
+	const command = client.commands.get(interaction.commandName);
 
-client.on('message', async message => {
-  console.log('In here');
-  if (message.content == '!get-data') {
-    const sheets = google.sheets({ version: 'v4', auth });
-    const res = await sheets.spreadsheets.values.get({
-      spreadsheetId: sheetId,
-      range: sheetName,
-    });
-    console.log(res);
-    const rows = res.data.values;
-    const formattedRows = rows.map(row => row.join(' | ')).join('\n');
-    message.channel.send(formattedRows);
-  }
+	if (!command) return;
+
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		if (interaction.replied || interaction.deferred) {
+			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+		} else {
+			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		}
+	}
 });
 
-client.login('MTA4NDEyMzU5MjAzNzUxMTMxOQ.GqGGBr.NJ2Uz6JQsFqualDNopOW_LoKXAYqS2FL2MwdJY');
+client.login(token);
