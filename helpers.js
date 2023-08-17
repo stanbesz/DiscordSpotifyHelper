@@ -1,0 +1,4 @@
+const AFTER_TABLE_HEAD = 1;
+const INDEX_ADJUSTMMENT = 1;
+const TABLE_HEAD = 0;
+const MONTH_PRICE = 3;

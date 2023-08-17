@@ -1,6 +1,6 @@
 # ignores all credential files
 config.json
-credential.json
+credentials.json
 
 #ignore all .env
 .env
