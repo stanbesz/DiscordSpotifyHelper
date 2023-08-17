@@ -1,6 +1,7 @@
 
 const { SlashCommandBuilder } = require('discord.js');
 const {google} = require("googleapis");
+const { spreadsheetId } = require('../config.json');
 
 const AFTER_TABLE_HEAD = 1;
 const INDEX_ADJUSTMMENT = 1;
@@ -44,7 +45,6 @@ const orderData = async function(googleData){
 	//console.log(foundIndex);
 	for(let i = AFTER_TABLE_HEAD;i<googleData.length;++i){
 		if(googleData[i].length<foundIndex+INDEX_ADJUSTMMENT){
-			
 			answer=answer+(`${checkIfVerji(googleData[i][0])} owes ${((foundIndex+INDEX_ADJUSTMMENT)-googleData[i].length)*MONTH_PRICE}BGN\n`)
 		}
 		else if(googleData[i].length>foundIndex+INDEX_ADJUSTMMENT){
@@ -75,8 +75,6 @@ module.exports = {
 
 		//INstance of Google Sheets API
 		const googleSheets = google.sheets({version:"v4",auth:client});
-
-		const spreadsheetId = "1TVmDGCj3IFqz_AMzp_fs93ga5ACfSP6Pe82ypR9CFZE";
 
 		//Get metadata about spreadsheet
 		const metaData = await googleSheets.spreadsheets.get({
